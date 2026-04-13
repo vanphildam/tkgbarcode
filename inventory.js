@@ -1,7 +1,7 @@
 /**
  * inventory.js - Stock Inventory Logic
  */
-
+//OKAY TEST IF THIS SHIT WORTKKSKKSKRKS
 document.addEventListener('DOMContentLoaded', () => {
     const app = {
         inventory: {},
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show loading state if grid exists
             const grid = document.getElementById('inventory-grid');
             if (grid) grid.innerHTML = '<div style="color:var(--text-secondary); text-align:center; grid-column:1/-1; padding:2rem;">Fetching LIVE Ledger...</div>';
-            
+
             await this.loadOverrides();
             await this.loadInventory();
             this.renderCategories();
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log("Loaded native DB catalog.");
                     // Merge into the global PRODUCT_CATALOG structure for the UI to digest
                     for (const [name, data] of Object.entries(dbProducts)) {
-                        
+
                         // We need to find or create a category for it. 
                         // If it's a new product from the Admin, it might not have a category assigned easily.
                         // We'll put it in an "Uncategorized" bucket if it doesn't exist in PRODUCT_CATALOG
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Load live ledger from Supabase API
             try {
                 this.inventory = await window.AppDB.getLiveInventory();
-            } catch(e) {
+            } catch (e) {
                 console.error("Failed to load live inventory from Supabase:", e);
                 this.inventory = {};
             }
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         getComputedBatches(productName) {
             const rawBatches = this.inventory[productName] || [];
-            
+
             let positiveBatches = [];
             let negativeOffset = 0;
 
@@ -270,18 +270,18 @@ document.addEventListener('DOMContentLoaded', () => {
             // Modal: Add Batch
             document.getElementById('modal-add-batch-btn').addEventListener('click', async () => {
                 if (!this.currentModalProduct) return;
-                
+
                 const q = prompt("How many items are in this new batch? (e.g. 10)", "10");
                 if (!q || isNaN(q) || parseInt(q) <= 0) return;
-                
+
                 const d = prompt("Enter the Expiry Date for this new batch (YYYY-MM-DD):", new Date().toISOString().split('T')[0]);
                 if (d === null) return; // User cancelled
-                
+
                 try {
                     await window.AppDB.insertAdjustment(this.currentModalProduct, parseInt(q), d, "Manual New Batch");
                     await this.loadInventory();
                     this.renderModalBatches();
-                } catch(e) {
+                } catch (e) {
                     alert("Failed to add batch: " + e.message);
                 }
             });
@@ -294,15 +294,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (target.classList.contains('remove-batch-btn')) {
                     const expiry = target.dataset.expiry;
                     const qtyToClear = parseInt(target.dataset.qty) || 0;
-                    
+
                     if (qtyToClear > 0) {
-                        if(!confirm("Remove this exact batch tracking?")) return;
+                        if (!confirm("Remove this exact batch tracking?")) return;
                         target.disabled = true;
                         try {
                             await AppDB.insertAdjustment(this.currentModalProduct, -qtyToClear, expiry, "Manual Batch Clear");
                             await this.loadInventory();
                             this.renderModalBatches();
-                        } catch(err) {
+                        } catch (err) {
                             alert("Failed to clear batch: " + err.message);
                             target.disabled = false;
                             this.renderModalBatches();
@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (target.classList.contains('control-btn') && !target.classList.contains('remove-batch-btn')) {
                     const expiry = target.dataset.expiry;
                     const isPlus = target.classList.contains('plus-btn');
-                    
+
                     target.disabled = true;
                     try {
                         if (isPlus) {
@@ -325,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         await this.loadInventory();
                         this.renderModalBatches();
-                    } catch(err) {
+                    } catch (err) {
                         alert("Failed to adjust stock: " + err.message);
                         this.renderModalBatches(); // reset 
                     }
@@ -341,26 +341,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     const oldExp = target.dataset.oldExp;
                     const newExp = target.value;
                     const qty = parseInt(target.dataset.qty) || 0;
-                    
+
                     if (oldExp !== newExp && qty > 0) {
-                        if(!confirm(`Transfer ${qty} items from ${oldExp || "No Expiry"} to ${newExp}?`)) {
+                        if (!confirm(`Transfer ${qty} items from ${oldExp || "No Expiry"} to ${newExp}?`)) {
                             target.value = oldExp; // revert UI
                             return;
                         }
-                        
+
                         target.disabled = true;
                         try {
                             // Reverse the old stack and create new stack
                             // We need to carefully handle oldExp if it was empty string
                             const resolvedOldExp = (oldExp === "No Expiry" || !oldExp) ? "" : oldExp;
                             const resolvedNewExp = (newExp === "No Expiry" || !newExp) ? "" : newExp;
-                            
+
                             await AppDB.insertAdjustment(this.currentModalProduct, -qty, resolvedOldExp, "Date Move - Remove old");
                             await AppDB.insertAdjustment(this.currentModalProduct, qty, resolvedNewExp, "Date Move - Add new");
-                            
+
                             await this.loadInventory();
                             this.renderModalBatches();
-                        } catch(err) {
+                        } catch (err) {
                             alert("Failed to change date: " + err.message);
                             target.value = oldExp; // revert UI
                             target.disabled = false;
@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.getElementById('modal-product-name').textContent = this.formatProductName(this.currentModalProduct);
             const container = document.getElementById('modal-batches-container');
-            
+
             // Revert back to displaying the mathematically swept FIFO stock, strictly clamped.
             // This prevents messy ledger aggregations (e -10 unlinked outbounds) from showing in the UI.
             let batches = this.getComputedBatches(this.currentModalProduct);
@@ -403,9 +403,9 @@ document.addEventListener('DOMContentLoaded', () => {
             batches = batches.map(b => ({ expiry: b.expiry === "No Expiry" ? "" : b.expiry, qty: b.computedQty }));
 
             container.innerHTML = batches.map((b) => {
-                    const remColor = b.qty < 0 ? 'var(--danger)' : 'var(--accent)';
+                const remColor = b.qty < 0 ? 'var(--danger)' : 'var(--accent)';
 
-                    return `
+                return `
                     <div class="stock-batch" style="flex-direction: column; align-items: flex-start; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
                         <div style="display: flex; justify-content: space-between; width: 100%;">
                             <input type="date" class="batch-date-input" data-old-exp="${b.expiry}" data-qty="${b.qty}" value="${b.expiry}">
@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     `;
-                }).join('');
+            }).join('');
 
             // Dynamic Details
             const infoDiv = document.getElementById('modal-dynamic-info');
@@ -435,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const outboundStock = rawBatches.reduce((sum, b) => b.qty < 0 ? sum + Math.abs(parseInt(b.qty)) : sum, 0);
 
                 const currentStock = batches.reduce((sum, b) => sum + b.qty, 0);
-                
+
                 infoDiv.innerHTML = `
                     <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                         <span>Gross Inbound Scans:</span> <strong>${inboundStock}</strong>
