@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TKG Barcode Ops - Stock Inbound</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: var(--bg-app);
+      min-height: 100vh;
+    }
+
+    .inbound-container {
+      max-width: 100%;
+      margin: 0;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 2rem;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @media (max-width: 900px) {
+      .inbound-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .main-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .glass-card {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    textarea#scanArea {
+      width: 100%;
+      height: 150px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 1rem;
+      color: var(--text-primary);
+      font-family: monospace;
+      font-size: 1rem;
+      resize: none;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea#scanArea:focus {
+      border-color: var(--accent);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+      outline: none;
+    }
+
+    .input-field:focus {
+      border-color: var(--accent);
+    }
+
+    /* Scanned List Items */
+    .scanned-item {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .item-meta {
+      flex: 1;
+    }
+
+    .item-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+      font-size: 0.95rem;
+    }
+
+    .item-code {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .expiry-badge {
+      display: inline-block;
+      background: rgba(37, 99, 235, 0.15);
+      color: #60a5fa;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-top: 0.25rem;
+      border: 1px solid rgba(37, 99, 235, 0.3);
+    }
+
+    .item-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-container {
+      background: rgba(20, 20, 25, 0.95);
+      border-radius: 20px;
+      width: 90%;
+      max-width: 400px;
+      padding: 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      transform: translateY(20px) scale(0.95);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      text-align: center;
+    }
+
+    .modal-overlay.active .modal-container {
+      transform: translateY(0) scale(1);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <header>
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <a href="index.html" class="secondary-btn" style="text-decoration: none; font-size: 0.9rem;">← Home</a>
+        <div class="logo">TKGBarcodeOps</div>
+      </div>
+      <div class="header-actions">
+        <!-- Global Save to sync data -->
+        <button class="primary-btn" id="save-btn" style="background: var(--success);" onclick="saveData()">💾 Log & Sync
+          Stock</button>
+      </div>
+    </header>
+
+    <main class="inbound-container">
+      <div class="main-panel">
+        <div class="glass-card">
+          <h3 class="card-title">Barcode Scanner</h3>
+          <p style="color:var(--text-secondary); margin-bottom:1rem; font-size: 0.9rem;">Scan barcodes below. Matched
+            products from the master database will be recognised automatically and placed in holding until you sync.</p>
+          <textarea id="scanArea" placeholder="Scan barcodes here (press Enter)..." autofocus></textarea>
+
+          <div style="display:flex; gap: 1rem; margin-top: 1rem;">
+            <button class="secondary-btn"
+              onclick="if(confirm('Clear scanned items hold?')) { scanned=[]; persistScans(); updateList(); }"
+              style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">✕ Clear Hold</button>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h3 class="card-title">Add Unknown Barcode</h3>
+          <p style="color:var(--text-secondary); margin-bottom:1rem; font-size: 0.9rem;">If a newly scanned item returns
+            "Unknown", you can teach the inbound system its temporary name.</p>
+          <input type="text" id="newBarcode" class="input-field" placeholder="Scan or type barcode...">
+          <input type="text" id="newName" class="input-field" placeholder="Product Name...">
+          <button class="primary-btn" style="width:100%;" onclick="addBarcode()">➕ Link Temporary Barcode</button>
+        </div>
+      </div>
+
+      <aside class="glass-card" style="display: flex; flex-direction: column;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+          <h3 class="card-title" style="margin:0;">Pending Stock</h3>
+          <div
+            style="background:var(--accent); color:#fff; font-weight:800; padding:2px 8px; border-radius:12px; font-size:0.9rem;"
+            id="count">0</div>
+        </div>
+        <div id="list" style="flex:1; overflow-y:auto; padding-right:5px;">
+          <div style="text-align:center; color:var(--text-secondary); margin-top: 2rem;">No items scanned yet</div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Expiry Popup -->
+  <div id="expiryPopup" class="modal-overlay">
+    <div class="modal-container">
+      <h3 class="card-title">Select Expiry Date</h3>
+      <p id="expiryProduct" style="color:var(--text-secondary); margin-bottom:1.5rem;"></p>
+
+      <input type="date" id="expiryInput" class="input-field" style="color-scheme: dark;">
+
+      <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <button class="secondary-btn" style="flex:1" onclick="cancelExpiry()">Cancel</button>
+        <button class="primary-btn" style="flex:1" onclick="confirmExpiry()">Save Stock</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="products.js"></script>
+  <script src="supabase-db.js"></script>
+  <script src="notifications.js"></script>
+
+  <script>
+    let scanned = [];
+    let pendingCode = null;
+    let pendingName = null;
+    let pendingQty = 1;
+    let localProducts = {};
+
+    // Load native DB catalog
+    async function loadOverrides() {
+      try {
+        const dbProducts = await window.AppDB.getProducts();
+        if (dbProducts && Object.keys(dbProducts).length > 0) {
+           localProducts = dbProducts;
+           console.log("Loaded native DB catalog.");
+        }
+      } catch (e) {
+        console.error("Failed to load native DB catalog", e);
+      }
+    }
+
+    // Initialize
+    window.addEventListener('load', async () => {
+      await loadOverrides();
+      updateList();
+    });
+
+    // Any user-defined isolated inbound rules
+    let localMap = JSON.parse(localStorage.getItem("tkg_inbound_productMap")) || {};
+
+    const boxMap = {
+      "@Yewyong1z": { code: "794712851813", qty: 42 }
+    };
+
+    // Core app DB Lookup bridging
+    function getProductName(code) {
+      // 1. Check Cloud Overrides first
+      for (const [name, data] of Object.entries(localProducts)) {
+        if (data && data.barcodes && data.barcodes.includes(code)) return name;
+      }
+
+      // 2. Check Local manual mapping
+      if (localMap[code]) return localMap[code];
+
+      // 3. Scan global PRODUCT_CATALOG
+      if (typeof PRODUCT_CATALOG !== 'undefined') {
+        for (const category in PRODUCT_CATALOG) {
+          if (category === "Aliases" || category === "Merchandise") continue;
+          for (const name in PRODUCT_CATALOG[category]) {
+            const item = PRODUCT_CATALOG[category][name];
+            if (item.barcodes && item.barcodes.includes(code)) {
+              return name;
+            }
+          }
+        }
+      }
+      return null;
+    }
+
+    // Intercept scan area
+    document.getElementById("scanArea").addEventListener("keydown", e => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+
+      const lines = e.target.value.trim().split(/\r?\n/);
+      const scannedCode = lines[lines.length - 1].trim();
+      if (!scannedCode) return;
+
+      let code, name, qtyToAdd;
+
+      if (boxMap[scannedCode]) {
+        const box = boxMap[scannedCode];
+        code = box.code;
+        const lookup = getProductName(code);
+        name = lookup ? lookup : "Unknown Box";
+        qtyToAdd = box.qty;
+      } else {
+        const lookup = getProductName(scannedCode);
+        code = scannedCode;
+        name = lookup ? lookup : "Unknown Product";
+        qtyToAdd = 1;
+      }
+
+      // Trigger modal
+      pendingCode = code;
+      pendingName = name;
+      pendingQty = qtyToAdd;
+
+      const displayN = name.charAt(0).toUpperCase() + name.slice(1);
+      document.getElementById("expiryProduct").textContent = `${displayN} (${code})`;
+      document.getElementById("expiryPopup").classList.add("active");
+
+      e.target.value = ""; // clear buffer
+    });
+
+    function updateList() {
+      const list = document.getElementById("list");
+      const count = document.getElementById("count");
+      list.innerHTML = "";
+
+      const total = scanned.reduce((sum, item) => sum + item.qty, 0);
+      count.textContent = total;
+
+      if (scanned.length === 0) {
+        list.innerHTML = `<div style="text-align:center; color:var(--text-secondary); margin-top: 2rem;">No items scanned yet</div>`;
+        return;
+      }
+
+      scanned.forEach((item, index) => {
+        const displayN = item.name.charAt(0).toUpperCase() + item.name.slice(1);
+        const dateStr = item.expiry ? new Date(item.expiry).toLocaleDateString('en-GB') : "No Date";
+
+        list.innerHTML += `
+      <div class="scanned-item">
+        <div class="item-meta">
+          <div class="item-name">${displayN}</div>
+          <div class="item-code">${item.code}</div>
+          <div class="expiry-badge">Expiry: ${dateStr}</div>
+        </div>
+        <div class="item-controls">
+          <input class="input-field" style="width:60px; text-align:center; padding:0.5rem; margin:0;" type="number" min="1" value="${item.qty}"
+                 onchange="editQty(${index}, this.value)">
+          <button class="secondary-btn" style="padding:0.5rem; border-color:transparent; color:var(--danger);" onclick="deleteItem(${index})">✕</button>
+        </div>
+      </div>
+    `;
+      });
+    }
+
+    function confirmExpiry() {
+      const expiry = document.getElementById("expiryInput").value;
+      if (!expiry) {
+        if (!confirm("Are you sure you want to add stock without an expiry date?")) return;
+      }
+
+      const existing = scanned.find(i => i.code === pendingCode && i.expiry === expiry);
+
+      if (existing) {
+        existing.qty += pendingQty;
+      } else {
+        scanned.push({
+          code: pendingCode,
+          name: pendingName,
+          status: pendingName === "Unknown Product" ? "unknown" : "found",
+          qty: pendingQty,
+          expiry: expiry
+        });
+      }
+
+      persistScans();
+      updateList();
+
+      pendingCode = null;
+      pendingName = null;
+
+      document.getElementById("expiryInput").value = "";
+      document.getElementById("expiryPopup").classList.remove("active");
+    }
+
+    function cancelExpiry() {
+      pendingCode = null;
+      pendingName = null;
+      document.getElementById("expiryInput").value = "";
+      document.getElementById("expiryPopup").classList.remove("active");
+      document.getElementById("scanArea").focus();
+    }
+
+    function editQty(i, val) {
+      scanned[i].qty = parseInt(val) || 1;
+      updateList();
+      persistScans();
+    }
+
+    function deleteItem(i) {
+      scanned.splice(i, 1);
+      updateList();
+      persistScans();
+    }
+
+    // Sync to BOTH SheetDB and Local Application Inventory
+    const API_URL = "https://sheetdb.io/api/v1/4nyjzc002pdwh?sheet=RAW_SCAN_DATA";
+
+    async function saveData() {
+      if (!scanned.length) {
+        alert("No barcodes scanned!");
+        return;
+      }
+
+      if (!window.AppDB) {
+        alert("Cloud Database not initialized!");
+        return;
+      }
+
+      const btn = document.getElementById('save-btn');
+      btn.textContent = "Syncing to Cloud...";
+      btn.disabled = true;
+
+      try {
+        // Submit each scanned item to the Cloud Ledger
+        for (const item of scanned) {
+          if (item.name && item.name !== "Unknown Product") {
+            await window.AppDB.insertInbound({
+              product: item.name,
+              qty: item.qty,
+              expiry: item.expiry || null,
+              notes: "Manual Warehouse Inbound"
+            });
+          }
+        }
+
+        alert("🚀 Stock successfully synced to Cloud Ledger!");
+        scanned = [];
+        persistScans();
+        updateList();
+
+      } catch (err) {
+        console.error("Cloud Sync error:", err);
+        alert("❌ Failed to sync to cloud: " + err.message);
+      } finally {
+        btn.textContent = "💾 Log & Sync Stock";
+        btn.disabled = false;
+        document.getElementById("scanArea").focus();
+      }
+    }
+
+    function addBarcode() {
+      const code = document.getElementById("newBarcode").value.trim();
+      let name = document.getElementById("newName").value.trim().toLowerCase();
+
+      if (!code || !name) {
+        alert("Please enter both barcode and product name");
+        return;
+      }
+
+      localMap[code] = name;
+      localStorage.setItem("tkg_inbound_productMap", JSON.stringify(localMap));
+      alert(`Linked: ${name} (${code})`);
+
+      document.getElementById("newBarcode").value = "";
+      document.getElementById("newName").value = "";
+      document.getElementById("scanArea").focus();
+
+      // Try to retrofit unknown things currently in holding
+      let updated = false;
+      scanned.forEach(i => {
+        if (i.code === code && i.status === "unknown") {
+          i.name = name;
+          i.status = "found";
+          updated = true;
+        }
+      });
+      if (updated) { updateList(); persistScans(); }
+    }
+
+    updateList();
+  </script>
+</body>
+
+</html>

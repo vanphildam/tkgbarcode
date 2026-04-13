@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barcode Ops - Import</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="summary-table.css">
+    <!-- Using SheetJS for Excel parsing -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a href="index.html" class="secondary-btn" style="text-decoration: none; font-size: 0.9rem;">← Home</a>
+                <div class="logo">TKGBarcodeOps</div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Upload View -->
+            <section id="upload-view" class="view active">
+                <div class="upload-card">
+                    <div class="drop-zone" id="drop-zone">
+                        <div class="icon">📄</div>
+                        <h2>Import Order Sheet</h2>
+                        <p>Drag and drop your Excel file here<br>or click to browse</p>
+                        <button class="browse-btn" onclick="document.getElementById('file-input').click()">Browse
+                            Files</button>
+                        <input type="file" id="file-input" accept=".xlsx, .xls, .csv" hidden>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Summary View -->
+            <section id="summary-view" class="view hidden">
+                <div class="toolbar">
+                    <button class="secondary-btn" id="back-to-dash-btn">← Back to Dashboard</button>
+                    <h2>Packing Summary</h2>
+                    <div style="width: 100px;"></div> <!-- Spacer -->
+                </div>
+                <div class="summary-card">
+                    <div id="summary-content">
+                        <!-- Content injected via JS -->
+                    </div>
+                </div>
+            </section>
+            <!-- Dashboard View -->
+            <section id="dashboard-view" class="view hidden">
+                <div class="toolbar">
+                    <h2>Orders <span id="order-count" class="badge">0</span></h2>
+                    <div class="toolbar-actions">
+                        <button class="secondary-btn" id="view-summary-btn">View Scanned Summary</button>
+                        <button id="add-shopify-btn" class="secondary-btn"
+                            style="border-color: #9333ea; color: #a855f7;">Add Shopify Order</button>
+                        <button id="add-file-btn" class="secondary-btn">Add Another File</button>
+                        <button id="check-dupes-btn" class="secondary-btn">Check Duplicates</button>
+                        <button id="btn-export-gsheet" class="primary-btn"
+                            style="background-color: #0f9d58; color: white;">Sync
+                            to G-Sheet</button>
+                        <button class="text-btn" id="new-import-btn">New Import</button>
+                    </div>
+                </div>
+
+                <!-- Missing Products Alerts -->
+                <div id="issues-panel" class="hidden"
+                    style="background:#450a0a; border: 1px solid #991b1b; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
+                    <h3 style="color: #fecaca; margin-bottom: 0.75rem;">⚠️ Missing Mappings Found</h3>
+                    <p style="color: #fca5a5; font-size: 0.9rem; margin-bottom: 1rem;">The following marketplace
+                        names
+                        were NOT found in the database. Please create links for them in the <a href="admin.html"
+                            style="color:white; text-decoration: underline;">Admin Panel</a>.</p>
+                    <ul id="issues-list"
+                        style="color: #fecaca; font-size: 0.85rem; padding-left: 1.5rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                        <!-- Missing names list -->
+                    </ul>
+                </div>
+
+                <!-- Carrier Tally Stats -->
+                <div id="stats-panel" class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">Ninja Van</div>
+                        <div class="stat-value" id="count-ninja">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">SPX</div>
+                        <div class="stat-value" id="count-spx">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title" style="color: #a855f7;">Shopify</div>
+                        <div class="stat-value" id="count-shopify">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Other</div>
+                        <div class="stat-value" id="count-other">0</div>
+                    </div>
+                    <div class="stat-card total">
+                        <div class="stat-title">Total Orders</div>
+                        <div class="stat-value" id="count-total">0</div>
+                    </div>
+                </div>
+
+
+                <div class="table-wrapper">
+                    <table id="orders-table">
+                        <thead>
+                            <tr>
+                                <th>AWB / Tracking</th>
+                                <th>Order ID</th>
+                                <th>Items</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-list">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <!-- Detail/Scan Modal -->
+        <div id="scan-modal" class="modal-overlay hidden">
+            <div class="modal">
+                <div class="modal-header">
+                    <div>
+                        <h2 id="modal-awb" style="margin-bottom: 4px;">AWB-123</h2>
+                        <span id="modal-order-id" style="color:var(--text-secondary); font-size: 0.9em;">ORD-456</span>
+                    </div>
+                    <button class="close-icon" id="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="scan-controls" style="display:flex; gap:10px; margin-bottom: 20px;">
+                        <input type="text" id="scan-input" class="scan-input" placeholder="Scan item barcode here...">
+                        <button id="scan-input-btn" class="primary-btn" style="padding: 0.5rem 1rem;">Go</button>
+                    </div>
+
+                    <div id="scan-feedback" class="scan-feedback hidden">
+                        <!-- Content injected via JS -->
+                    </div>
+
+                    <div class="items-section">
+                        <h3>Items to Pack</h3>
+                        <ul id="modal-items" class="check-list">
+                            <!-- Items -->
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="primary-btn full-width" id="complete-scan-btn">Complete Job</button>
+                </div>
+            </div>
+        </div>
+        <!-- Shopify Manual Input Modal -->
+        <div id="shopify-modal" class="modal-overlay hidden">
+            <div class="modal" style="max-width: 500px; border: 2px solid #9333ea;">
+                <div class="modal-header">
+                    <div>
+                        <h2 style="color: #9333ea;">Add Shopify Order</h2>
+                        <p style="color:var(--text-secondary); font-size: 0.85rem;">Manually input order details</p>
+                    </div>
+                    <button class="close-icon" id="close-shopify-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label style="display:block; margin-bottom: 0.5rem; font-weight: 500;">Airway Bill / Tracking
+                            Number</label>
+                        <input type="text" id="shopify-awb-input" class="scan-input" placeholder="Scan or type AWB..."
+                            style="width:100%;" autocomplete="off">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem; position: relative;">
+                        <label style="display:block; margin-bottom: 0.5rem; font-weight: 500;">Search & Select
+                            Products</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" id="shopify-product-input" class="scan-input"
+                                placeholder="Search by name or barcode..." style="flex:1;" autocomplete="off">
+                            <input type="number" id="shopify-qty-input" class="scan-input" value="1" min="1"
+                                style="width: 70px; text-align: center;">
+                            <button id="shopify-add-product-btn" class="secondary-btn"
+                                style="padding: 0.5rem 1rem;">Add</button>
+                        </div>
+                        <!-- Search Results Dropdown -->
+                        <div id="shopify-search-results" class="hidden"
+                            style="position: absolute; top: 100%; left: 0; right: 80px; background: #1e293b; border: 1px solid #4a5568; border-radius: 8px; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);">
+                            <!-- Results inject here -->
+                        </div>
+                    </div>
+
+                    <div class="manual-items-list" style="margin-top: 1.5rem;">
+                        <h3 style="font-size: 0.9rem; margin-bottom: 0.75rem; color: var(--text-secondary);">Items
+                            Added:</h3>
+                        <ul id="shopify-items-list" class="check-list"
+                            style="max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.05); padding: 5px; border-radius: 8px;">
+                            <!-- Manually added items will appear here -->
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="primary-btn full-width" id="save-shopify-order-btn"
+                        style="background-color: #9333ea;">Create & Save Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="products.js"></script>
+    <script src="supabase-db.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

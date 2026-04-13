@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TKG Barcode Ops - Defect Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .defect-container {
+            max-width: 100%;
+            margin: 0 auto;
+            width: 100%;
+            padding: 2rem;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .defect-btn {
+            background: var(--bg-surface);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 150px;
+        }
+
+        .defect-btn:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .defect-btn.active {
+            border-color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+
+        }
+
+        .defect-btn .icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .defect-btn .label {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .scan-area {
+            background: var(--bg-surface);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .scan-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 1rem;
+            font-size: 1.2rem;
+            text-align: center;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-app);
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .scan-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .scan-status {
+            min-height: 1.5rem;
+            font-weight: 600;
+        }
+
+        .summary-card {
+            background: var(--bg-surface);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+        }
+
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .log-table th,
+        .log-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .log-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .defect-tag {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .defect-no-air {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .defect-leak {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+
+        .defect-mushy {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .defect-other {
+            background: rgba(167, 139, 250, 0.2);
+            color: #a78bfa;
+        }
+
+        @media (max-width: 640px) {
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a href="index.html" class="secondary-btn" style="text-decoration: none; font-size: 0.9rem;">← Home</a>
+                <div class="logo">TKGBarcodeOps</div>
+            </div>
+        </header>
+
+        <main class="defect-container">
+            <h1 style="margin-bottom: 2rem; font-size: 2rem;">Defect Tracker</h1>
+
+            <div class="category-grid">
+                <div class="defect-btn" data-type="no-air" onclick="selectDefect('no-air')">
+                    <div class="icon">💨</div>
+                    <div class="label">No Air</div>
+                </div>
+                <div class="defect-btn" data-type="leak" onclick="selectDefect('leak')">
+                    <div class="icon">💧</div>
+                    <div class="label">Leak</div>
+                </div>
+                <div class="defect-btn" data-type="mushy" onclick="selectDefect('mushy')">
+                    <div class="icon">🌫️</div>
+                    <div class="label">Mushy</div>
+                </div>
+                <div class="defect-btn" data-type="other" onclick="selectDefect('other')">
+                    <div class="icon">❓</div>
+                    <div class="label">Other</div>
+                </div>
+            </div>
+
+            <div id="other-input-container"
+                style="display: none; margin-bottom: 2rem; animation: slideDown 0.3s ease-out;">
+                <label
+                    style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-secondary);">Specify
+                    Issue</label>
+                <input type="text" id="other-defect-desc" class="form-control"
+                    placeholder="e.g. Torn packaging, Wrong weight..."
+                    style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 2px solid var(--border-color); background: var(--bg-surface); color: var(--text-primary);">
+            </div>
+
+            <div class="scan-area">
+                <h3 style="margin-bottom: 1rem; color: var(--text-secondary);">Scan Item Barcode</h3>
+                <div style="display: flex; gap: 1rem; max-width: 800px; margin: 0 auto; margin-bottom: 1rem;">
+                    <input type="text" id="defect-batch-input" class="scan-input" style="flex: 1; margin-bottom: 0;"
+                        placeholder="Batch # (Opt)">
+                    <input type="date" id="defect-expiry-input" class="scan-input" style="flex: 1; margin-bottom: 0;"
+                        title="Optional Expiry Date">
+                    <input type="text" id="defect-scan-input" class="scan-input" style="flex: 2; margin-bottom: 0;"
+                        placeholder="Click category then scan..." disabled>
+                </div>
+                <div id="scan-feedback" class="scan-status">Select a defect category to start scanning</div>
+            </div>
+
+            <div class="summary-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>Session Summary</h2>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button id="sync-btn" class="secondary-btn"
+                            style="background: var(--accent); color: white; border: none; font-weight: bold;"
+                            onclick="syncToCloud()">🚀 Sync to Cloud Ledger</button>
+                        <button class="secondary-btn" onclick="clearSession()">Clear Session</button>
+                    </div>
+                </div>
+
+                <div class="stats-grid" style="margin-top: 1.5rem; margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <div class="stat-title">No Air</div>
+                        <div class="stat-value" id="count-no-air">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Leak</div>
+                        <div class="stat-value" id="count-leak">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Mushy</div>
+                        <div class="stat-value" id="count-mushy">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Other</div>
+                        <div class="stat-value" id="count-other">0</div>
+                    </div>
+                </div>
+
+                <div class="filter-bar" style="justify-content: flex-start; margin-bottom: 1rem;">
+                    <button class="filter-btn active" onclick="setFilter('all')">All</button>
+                    <button class="filter-btn" onclick="setFilter('no-air')">No Air</button>
+                    <button class="filter-btn" onclick="setFilter('leak')">Leak</button>
+                    <button class="filter-btn" onclick="setFilter('mushy')">Mushy</button>
+                    <button class="filter-btn" onclick="setFilter('other')">Other</button>
+                </div>
+
+                <h3 style="margin-bottom:1rem;">Recent Logs</h3>
+
+                <div class="table-wrapper">
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Defect Type</th>
+                                <th>Batch / Expiry</th>
+                                <th>Barcode</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="defect-log-body">
+                            <!-- Logs go here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="products.js"></script>
+    <script src="supabase-db.js"></script>
+    <script>
+        let currentDefect = null;
+        let activeFilter = 'all';
+        const STORAGE_KEY = 'tkg_defect_logs';
+        
+        let logs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        
+        const scanInput = document.getElementById('defect-scan-input');
+        const feedback = document.getElementById('scan-feedback');
+        const tbody = document.getElementById('defect-log-body');
+        const expiryInput = document.getElementById('defect-expiry-input');
+        const countBadges = document.querySelectorAll('.count-badge');
+        let localProducts = {};
+
+        // Load native DB catalog
+        async function loadOverrides() {
+            try {
+                const dbProducts = await window.AppDB.getProducts();
+                if (dbProducts && Object.keys(dbProducts).length > 0) {
+                    localProducts = dbProducts;
+                    console.log("Loaded native DB catalog.");
+                }
+            } catch (e) {
+                console.error("Failed to load native DB catalog", e);
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', async () => {
+            await loadOverrides();
+            renderLogs();
+            updateCounts();
+        });
+
+        // Initialize focus
+        // document.addEventListener('click', () => {
+        //     if (currentDefect && document.activeElement !== scanInput) {
+        //         scanInput.focus();
+        //     }
+
+        // Load logs from storage
+        function loadLogs() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    logs = JSON.parse(saved);
+                    renderLogs();
+                    updateCounts();
+                } catch (e) {
+                    console.error("Failed to parse logs", e);
+                }
+            }
+        }
+
+        // Save logs to storage
+        function saveLogs() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+        }
+
+        // Load overrides from LocalStorage (Sync with Product Manager)
+        function loadOverrides() {
+            const saved = localStorage.getItem('tkg_product_overrides');
+            if (saved) {
+                try {
+                    const localProducts = JSON.parse(saved);
+                    for (const [name, data] of Object.entries(localProducts)) {
+                        if (data === null) {
+                            if (typeof PRODUCT_DB !== 'undefined') delete PRODUCT_DB[name];
+                            continue;
+                        }
+                        if (typeof data === 'object') {
+                            if (data.barcodes && data.barcodes.length > 0) {
+                                if (typeof PRODUCT_DB !== 'undefined') PRODUCT_DB[name] = data.barcodes;
+                            }
+                        }
+                    }
+                    console.log("Loaded local product overrides.");
+                } catch (e) {
+                    console.error("Failed to load overrides", e);
+                }
+            }
+        }
+
+        // Initial Load
+        loadOverrides();
+        loadLogs();
+
+        function setFilter(filter) {
+            activeFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase().replace(' ', '-') === filter || (filter === 'all' && btn.textContent === 'All'));
+            });
+            renderLogs();
+        }
+
+        function selectDefect(type) {
+            currentDefect = type;
+
+            // UI Update
+            document.querySelectorAll('.defect-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.defect-btn[data-type="${type}"]`).classList.add('active');
+
+            // Handle Other Input
+            const otherContainer = document.getElementById('other-input-container');
+            const otherInput = document.getElementById('other-defect-desc');
+            if (type === 'other') {
+                otherContainer.style.display = 'block';
+                otherInput.focus();
+            } else {
+                otherContainer.style.display = 'none';
+                otherInput.value = '';
+            }
+
+            // Enable Input
+            scanInput.disabled = false;
+            scanInput.placeholder = `Scanning for: ${formatType(type)}...`;
+            if (type !== 'other') scanInput.focus();
+            feedback.textContent = `Ready to register ${formatType(type)} items`;
+            feedback.style.color = 'var(--text-primary)';
+        }
+
+        function formatType(type, desc = "") {
+            if (type === 'no-air') return 'No Air';
+            if (type === 'leak') return 'Leak';
+            if (type === 'mushy') return 'Mushy';
+            if (type === 'other') return desc || 'Other';
+            return type;
+        }
+
+        scanInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const barcode = scanInput.value.trim();
+                if (barcode) {
+                    processScan(barcode);
+                }
+                scanInput.value = '';
+            }
+        });
+
+        function processScan(barcode) {
+            if (!currentDefect) {
+                alert("Please select a defect type first!");
+                return;
+            }
+
+            // Lookup Product
+            const productName = findProductByBarcode(barcode);
+
+            const otherDesc = document.getElementById('other-defect-desc').value.trim();
+            const batchNum = document.getElementById('defect-batch-input').value.trim();
+            const expiryDate = document.getElementById('defect-expiry-input').value;
+
+            // NEW: Check if this item (same barcode, defect type, and description AND expiry) already exists in the logs
+            const existingEntry = logs.find(l =>
+                l.barcode === barcode &&
+                l.type === currentDefect &&
+                l.batch === batchNum &&
+                l.expiry === expiryDate &&
+                (currentDefect !== 'other' || l.otherDesc === otherDesc)
+            );
+
+            if (existingEntry) {
+                existingEntry.count++;
+                // Move it to the top of the list so it's most visible
+                const index = logs.indexOf(existingEntry);
+                if (index > -1) {
+                    logs.splice(index, 1);
+                    logs.unshift(existingEntry);
+                }
+
+                saveLogs();
+                renderLogs();
+                updateCounts();
+                const batchText = batchNum ? `[Batch: ${batchNum}] ` : '';
+                const expText = expiryDate ? `[Exp: ${expiryDate}]` : '';
+                feedback.textContent = `Updated: ${productName} (x${existingEntry.count}) - ${formatType(currentDefect, otherDesc)} ${batchText}${expText}`;
+                feedback.style.color = 'var(--accent)';
+                return;
+            }
+
+            const entry = {
+                id: Date.now(),
+                // timestamp: new Date().toLocaleTimeString(),
+                product: productName,
+                barcode: barcode,
+                type: currentDefect,
+                otherDesc: otherDesc,
+                batch: batchNum,
+                expiry: expiryDate,
+                count: 1
+            };
+
+            logs.unshift(entry);
+            saveLogs();
+            renderLogs();
+            updateCounts();
+
+            // Visual Feedback
+            feedback.textContent = `Registered: ${productName} (${formatType(currentDefect, otherDesc)})`;
+            feedback.style.color = 'var(--success)';
+        }
+
+        function findProductByBarcode(code) {
+            // 1. Check Cloud Overrides first
+            for (const [name, data] of Object.entries(localProducts)) {
+                if (data && data.barcodes && data.barcodes.includes(code)) return name;
+            }
+
+            // 2. Fallback to static catalog
+            if (typeof PRODUCT_CATALOG !== 'undefined') {
+                for (const category in PRODUCT_CATALOG) {
+                    for (const [name, item] of Object.entries(PRODUCT_CATALOG[category])) {
+                        if (item.barcodes && item.barcodes.includes(code)) return name;
+                    }
+                }
+            }
+
+            // Legacy check if PRODUCT_DB exists
+            if (typeof PRODUCT_DB !== 'undefined') {
+                for (const [name, codes] of Object.entries(PRODUCT_DB)) {
+                    if (Array.isArray(codes) && codes.includes(code)) return name;
+                }
+            }
+            return "Unknown Product";
+        }
+
+        function renderLogs() {
+            const filteredLogs = activeFilter === 'all'
+                ? logs
+                : logs.filter(l => l.type === activeFilter);
+
+            tbody.innerHTML = filteredLogs.map(log => {
+                const batchBadge = log.batch ? `<div style="font-size: 0.8em; color: var(--accent); margin-top: 4px;">Batch: ${log.batch}</div>` : '';
+                const expBadge = log.expiry ? `<div style="font-size: 0.8em; color: var(--danger); margin-top: 4px;">Exp: ${log.expiry}</div>` : '';
+                return `
+                <tr>
+                    <td style="font-weight:600;">
+                        ${log.product}
+                        ${log.count > 1 ? `<span style="background:#0f172a; color:white; padding:2px 8px; border-radius:12px; font-size:0.8em; margin-left:8px; display: inline-block;">x${log.count}</span>` : ''}
+                    </td>
+                    <td><span class="defect-tag defect-${log.type}">${formatType(log.type, log.otherDesc)}</span></td>
+                    <td>
+                        ${batchBadge}
+                        ${expBadge}
+                        ${!log.batch && !log.expiry ? '<span style="color:var(--text-secondary); font-size:0.8em;">-</span>' : ''}
+                    </td>
+                    <td style="font-family:monospace; color:var(--text-secondary);">${log.barcode}</td>
+                    <td>
+                        <button class="filter-btn" style="padding: 0.2rem 0.6rem; font-size: 0.8rem;" onclick="editLogItem(${log.id})">Edit</button>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function editLogItem(id) {
+            const index = logs.findIndex(l => l.id === id);
+            if (index > -1) {
+                const log = logs[index];
+
+                const newBatch = prompt(`Edit Batch Number for ${log.product}\nCurrent Batch: ${log.batch || 'None'}`, log.batch || '');
+                if (newBatch === null) return; // Cancelled
+
+                const newExpiry = prompt(`Edit Expiry Date (YYYY-MM-DD)\nCurrent Expiry: ${log.expiry || 'None'}`, log.expiry || '');
+                if (newExpiry === null) return; // Cancelled
+
+                // Update the fields
+                log.batch = newBatch.trim();
+                log.expiry = newExpiry.trim();
+
+                // Save and re-render
+                saveLogs();
+                renderLogs();
+            }
+        }
+
+        function updateCounts() {
+            const counts = { 'no-air': 0, 'leak': 0, 'mushy': 0, 'other': 0 };
+            logs.forEach(l => {
+                if (counts[l.type] !== undefined) counts[l.type] += l.count;
+            });
+
+            document.getElementById('count-no-air').textContent = counts['no-air'];
+            document.getElementById('count-leak').textContent = counts['leak'];
+            document.getElementById('count-mushy').textContent = counts['mushy'];
+            document.getElementById('count-other').textContent = counts['other'];
+        }
+
+        async function syncToCloud() {
+            if (!logs.length) return alert("No items to sync!");
+            if (!confirm("Push these defect logs to the Cloud Ledger? This will permanently deduct stock.")) return;
+
+            const btn = document.getElementById('sync-btn');
+            const originalText = btn.textContent;
+            btn.textContent = "Syncing...";
+            btn.disabled = true;
+
+            try {
+                for (const log of logs) {
+                    await window.AppDB.insertDefect({
+                        product: log.product,
+                        count: log.count,
+                        expiry: log.expiry || null,
+                        defectType: log.type,
+                        notes: log.otherDesc || ""
+                    });
+                }
+
+                alert("🚀 All defects synced to Cloud Ledger!");
+                logs = [];
+                localStorage.removeItem(STORAGE_KEY);
+                renderLogs();
+                updateCounts();
+            } catch (e) {
+                alert("❌ Sync failed: " + e.message);
+                console.error(e);
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function clearSession() {
+            if (confirm("Clear all logs? (This will NOT sync them to the cloud)")) {
+                logs = [];
+                localStorage.removeItem(STORAGE_KEY);
+                renderLogs();
+                updateCounts();
+                scanInput.value = '';
+                feedback.textContent = "Session cleared";
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="products.js"></script>
+    <script src="supabase-db.js"></script>
+</body>
+
+</html>

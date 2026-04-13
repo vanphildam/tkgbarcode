@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TKG Barcode Ops - Home</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .landing-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .hero-section {
+            margin-bottom: 4rem;
+        }
+
+        .hero-section h1 {
+            font-size: 2.75rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+        }
+
+        .hero-section p {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            max-width: 540px;
+            line-height: 1.6;
+            margin: 0 auto;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 1100px;
+            /* Expands wider but not overly wide */
+            margin: 0 auto;
+        }
+
+        .action-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            /* Reduced padding to make buttons smaller */
+            text-align: left;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .action-card:hover {
+            border-color: var(--accent);
+            background: var(--bg-surface-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-icon {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+            background: rgba(59, 130, 246, 0.1);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+        }
+
+        .action-card h2 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .action-card p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        .footer-note {
+            margin-top: 4rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        @media (max-width: 1024px) {
+            .card-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+
+            .landing-container {
+                padding: 2rem 1rem;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <div class="logo">TKGBarcodeOps</div>
+        </header>
+
+        <main class="landing-co ntainer">
+            <div class="hero-section">
+                <img src="images/Logo.webp" alt="TKG Logo" width="200" height="200">
+                <h1>Operations</h1>
+                <p>insert something professional i cant think about in this text.</p>
+            </div>
+
+            <div class="card-grid">
+                <a href="importer.html" class="action-card">
+                    <div class="card-icon">📦</div>
+                    <h2>Order Processing</h2>
+                    <p>Fulfill Shopee and Lazada orders with real-time barcode verification and auto-sync.</p>
+                </a>
+
+                <a href="admin.html" class="action-card">
+                    <div class="card-icon">🏗️</div>
+                    <h2>Master Admin / DB</h2>
+                    <p>Manage the dynamic Master Product Catalog, Variants, Links, and Backups visually.</p>
+                </a>
+
+                <a href="inventory.html" class="action-card">
+                    <div class="card-icon">📋</div>
+                    <h2>Stock Inventory</h2>
+                    <p>Manage and track real-time stock levels for all products in the catalog.</p>
+                </a>
+
+                <a href="stock_inbound.html" class="action-card">
+                    <div class="card-icon">📥</div>
+                    <h2>Stock Inbound</h2>
+                    <p>Scan incoming inventory to record new stock and track expiry dates.</p>
+                </a>
+
+                <a href="defects.html" class="action-card">
+                    <div class="card-icon">⚠️</div>
+                    <h2>Defect Tracker</h2>
+                    <p>Log manufacturing defects like leaks, air issues, or mushy products for QC. Please just use the
+                        summary here to put it into your sheet yourself, im not wasting an API on this.</p>
+                </a>
+
+                <a href="Ordertracking.html" class="action-card">
+                    <div class="card-icon">📊</div>
+                    <h2>Reports & Statistics</h2>
+                    <p>View comprehensive burn rates, outbound fulfillment stats, and dynamically calculated inventory
+                        tracking.</p>
+                </a>
+
+                <a href="order-records.html" class="action-card">
+                    <div class="card-icon">🗂️</div>
+                    <h2>Order Records</h2>
+                    <p>Review the historical log of all pending and completed orders across platforms.</p>
+                </a>
+
+                <a href="b2b-outbound.html" class="action-card">
+                    <div class="card-icon">🚚</div>
+                    <h2>B2B / Wholesale Outbound</h2>
+                    <p>Manually dispatch bulk inventory requests directly from the master ledger.</p>
+                </a>
+            </div>
+
+            <div class="footer-note">
+                &copy; 2026 The Kettle Gourmet. All Rights Reserved. who tf even reads this lol???
+            </div>
+        </main>
+    </div>
+    <script src="notifications.js"></script>
+</body>
+
+</html>

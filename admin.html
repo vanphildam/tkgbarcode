@@ -1,0 +1,72 @@
+<!-- admin.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TKG Warehouse | Master Admin</title>
+    <!-- Modern Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css">
+    <!-- Using SheetJS for Excel parsing -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">📦</span>
+                <span class="logo-text">TKG WMS</span>
+            </div>
+            <div class="nav-links">
+                <button class="nav-item active" onclick="switchSection('inventory')">📦 Master Inventory</button>
+                <button class="nav-item" onclick="switchSection('giftboxes')">🎁 Gift Box Recipes</button>
+                <button class="nav-item" onclick="switchSection('mapping')">🔗 Marketplace Links</button>
+                <button class="nav-item" onclick="switchSection('scanner')">🔍 Marketplace Scanner</button>
+                <button class="nav-item" onclick="switchSection('backups')">💾 Backup & Sync</button>
+            </div>
+            <div class="user-info">
+                <span>Developer Mode</span>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content">
+            <header class="top-bar">
+                <h1 id="section-title">Master Inventory</h1>
+                <div class="top-actions" style="display:flex; gap:1rem;">
+
+                    <button class="btn btn-secondary" onclick="syncToApp()">🚀 Sync to Scanner</button>
+                    <button class="btn btn-primary" onclick="openNewProductModal()">+ Create New Product</button>
+                </div>
+            </header>
+
+            <div id="dynamic-content" class="fade-in">
+                <!-- Content injected by admin.js -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals for Editing (to keep the list view clean) -->
+    <div id="modal-container" class="modal-overlay" style="display:none">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="modal-title">Product Details</h2>
+                <button onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Specialized forms injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="products.js"></script>
+    <script src="supabase-db.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>

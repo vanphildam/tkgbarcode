@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TKG Barcode Ops - Order Records</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: var(--bg-app);
+            min-height: 100vh;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: -1px;
+        }
+
+        .tab-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .records-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .records-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .records-header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+        .filters-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-input {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        select.filter-input {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+        }
+
+        select.filter-input option {
+            background: var(--bg-app);
+            color: var(--text-primary);
+            padding: 0.5rem;
+        }
+
+        .filter-input:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .table-container {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        th,
+        td {
+            padding: 1.25rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.2);
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge.complete {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+        }
+
+        .badge.pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+        }
+
+        .badge.shopee {
+            background: rgba(249, 115, 22, 0.15);
+            color: #f97316;
+        }
+
+        .badge.lazada {
+            background: rgba(14, 165, 233, 0.15);
+            color: #38bdf8;
+        }
+
+        .badge.shopify {
+            background: rgba(147, 51, 234, 0.15);
+            color: #c084fc;
+        }
+
+        .badge.tiktok {
+            background: rgba(236, 72, 153, 0.15);
+            color: #f472b6;
+        }
+
+        .badge.other {
+            background: rgba(156, 163, 175, 0.15);
+            color: #9ca3af;
+        }
+
+        .items-cell {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .items-list-expanded {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        .items-list-expanded li {
+            margin-bottom: 0.25rem;
+        }
+
+        .btn-expand {
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-decoration: underline;
+            padding: 0;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a href="index.html" class="secondary-btn" style="text-decoration: none; font-size: 0.9rem;">← Home</a>
+                <div class="logo">TKGBarcodeOps</div>
+            </div>
+            <div>
+                <span style="color: var(--text-secondary);">Historical Order Logs</span>
+            </div>
+        </header>
+
+        <main class="records-container">
+            <div class="records-header" style="flex-direction:column; align-items:flex-start; margin-bottom: 1.5rem;">
+                <h1>Order Records</h1>
+
+                <div
+                    style="display:flex; gap:0.5rem; margin-top:1.5rem; border-bottom:1px solid rgba(255,255,255,0.1); width:100%;">
+                    <button class="tab-btn active" id="tab-ecommerce">E-Commerce</button>
+                    <button class="tab-btn" id="tab-b2b">Wholesale / B2B</button>
+                </div>
+            </div>
+
+            <div class="filters-bar">
+                <input type="text" id="search-input" class="filter-input"
+                    placeholder="Search by AWB, Order ID, tracking...">
+                <select id="status-filter" class="filter-input" style="max-width: 200px;">
+                    <option value="all">All Statuses</option>
+                    <option value="complete">Complete / Exported</option>
+                    <option value="pending">Pending</option>
+                </select>
+                <select id="platform-filter" class="filter-input" style="max-width: 150px;">
+                    <option value="all">All Platforms</option>
+                    <option value="shopee">Shopee</option>
+                    <option value="lazada">Lazada</option>
+                    <option value="shopify">Shopify</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="b2b">B2B / Wholesale</option>
+                </select>
+                <select id="delivery-filter" class="filter-input" style="max-width: 150px;">
+                    <option value="all">All Delivery</option>
+                    <option value="spx">SPX Express</option>
+                    <option value="ninjavan">NinjaVan</option>
+                    <option value="singpost">Singpost</option>
+                    <option value="jt">J&T</option>
+                    <option value="b2b">Direct Dispatch</option>
+                </select>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date / Time</th>
+                            <th>AWB / Tracking</th>
+                            <th>Order ID</th>
+                            <th>Platform</th>
+                            <th>Delivery</th>
+                            <th>Items</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="records-tbody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                                Loading records...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="products.js"></script>
+    <script src="supabase-db.js"></script>
+    <script src="order-records.js"></script>
+</body>
+
+</html>
