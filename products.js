@@ -21,7 +21,7 @@ try {
         }
     }
     if (invChanged) localStorage.setItem('tkg_inventory', JSON.stringify(oldInv));
-} catch(e) { console.error(e); }
+} catch (e) { console.error(e); }
 
 // --- 1. INDIVIDUAL PRODUCTS CATALOG ---
 const PRODUCT_CATALOG = {
@@ -32,9 +32,9 @@ const PRODUCT_CATALOG = {
         "pulut hitam 30g": { type: "single", barcodes: ["794712851905"], image: "images/30gProducts/PH30g.png" },
         "salted caramel 30g": { type: "single", barcodes: ["794712851912"], image: "images/30gProducts/SC30g.png" },
         "chilli crab 30g": { type: "single", barcodes: ["794712851844"], image: "images/30gProducts/CC30g.png" },
-        "holy cheese 30g": { type: "single", barcodes: ["796548081532"], image: "images/30gProducts/HC30g.png" },
-        "chicken floss 30g": { type: "single", barcodes: ["794712851837"], image: "images/30gProducts/CF30g.png" },
-        "fish head curry 30g": { type: "single", barcodes: ["794712851875"], image: "images/30gProducts/FHC30g.png" }
+        "holy cheese 30g": { type: "single", barcodes: ["796548081532"], image: "images/30gProducts/HC30g.png" },       // TODO: add images/30gProducts/HC30g.png
+        "chicken floss 30g": { type: "single", barcodes: ["794712851837"], image: "images/30gProducts/CF30g.png" },    // TODO: add images/30gProducts/CF30g.png
+        "fish head curry 30g": { type: "single", barcodes: ["794712851875"], image: "images/30gProducts/FHC30g.png" }   // TODO: add images/30gProducts/FHC30g.png
     },
     "Popcorn 65g": {
         "chocolate 65g": { type: "single", barcodes: ["793618011932"], image: "images/65gProducts/CHC65G.png" },
@@ -44,7 +44,7 @@ const PRODUCT_CATALOG = {
         "salted caramel 65g": { type: "single", barcodes: ["793591857138"], image: "images/65gProducts/SC65G.png" },
         "chilli crab 65g": { type: "single", barcodes: ["793591857107"], image: "images/65gProducts/CC65G.png" },
         "chicken floss 65g": { type: "single", barcodes: ["793618011949"], image: "images/65gProducts/CF65G.png" },
-        "fish head curry 65g": { type: "single", barcodes: ["793591857091"], image: "images/65gProducts/FHC65G.png" }
+        "fish head curry 65g": { type: "single", barcodes: ["793591857091"], image: "" }
     },
     "Poppa": {
         "poppa salted caramel": { type: "single", barcodes: ["796548081457"], image: "images/Poppa/SCPoppa.webp" },
@@ -584,7 +584,7 @@ function normalizeAndFind(rawName) {
 }
 
 // --- Global Beautiful Naming Utilities ---
-window.formatProductName = function(name) {
+window.formatProductName = function (name) {
     if (!name) return "Unknown Product";
     let cleanName = name.toLowerCase().trim();
 
@@ -619,10 +619,10 @@ window.formatProductName = function(name) {
         // Keep weight grams lowercase
         if (w.match(/^\d+g$/i)) return w.toLowerCase();
         if (w.match(/^\d+m$/i)) return w.toLowerCase();
-        
+
         let lower = w.toLowerCase();
         if (rules[lower]) return rules[lower];
-        
+
         // Don't capitalize small connective words unless they are the first word
         const smallWords = ["with", "and", "or", "made", "the", "a", "an", "of", "in", "for"];
         if (i !== 0 && smallWords.includes(lower)) {

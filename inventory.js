@@ -30,19 +30,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Merge into the global PRODUCT_CATALOG structure for the UI to digest
                     for (const [name, data] of Object.entries(dbProducts)) {
 
-                        // We need to find or create a category for it. 
-                        // If it's a new product from the Admin, it might not have a category assigned easily.
-                        // We'll put it in an "Uncategorized" bucket if it doesn't exist in PRODUCT_CATALOG
                         let found = false;
                         for (const cat in PRODUCT_CATALOG) {
                             if (PRODUCT_CATALOG[cat][name]) {
+                                // Always restore local image — never allow DB/Supabase URLs, even for products with image: ""
+                                const localImage = PRODUCT_CATALOG[cat][name].image;
                                 PRODUCT_CATALOG[cat][name] = { ...PRODUCT_CATALOG[cat][name], ...data };
+                                PRODUCT_CATALOG[cat][name].image = localImage; // always wins, even if ""
                                 found = true;
                                 break;
                             }
                         }
 
                         if (!found && data.type) {
+                            // New product from Admin — add to Cloud Sync category
+                            // Only use DB image if no local image exists
                             if (!PRODUCT_CATALOG["Cloud Sync"]) PRODUCT_CATALOG["Cloud Sync"] = {};
                             PRODUCT_CATALOG["Cloud Sync"][name] = data;
                         }
@@ -57,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return window.formatProductName ? window.formatProductName(name) : name;
         },
 
-        async loadInventory() {
+        async loadInventory(skipRender = false) {
             // Load live ledger from Supabase API
             try {
                 this.inventory = await window.AppDB.getLiveInventory();
@@ -65,7 +67,64 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Failed to load live inventory from Supabase:", e);
                 this.inventory = {};
             }
-            this.renderProducts();
+            if (!skipRender) this.renderProducts();
+        },
+
+        // Surgically update a single card's stock numbers WITHOUT rebuilding the grid
+        // (avoids all <img> tags being recreated and flashing)
+        updateCardStockDisplay(productName) {
+            if (!productName) return;
+            const infoDiv = document.querySelector(`.product-info[data-product="${productName}"]`);
+            if (!infoDiv) return;
+            const card = infoDiv.closest('.inventory-card');
+            if (!card) return;
+
+            const computedBatches = this.getComputedBatches(productName);
+            const stock = computedBatches.reduce((sum, b) => sum + b.computedQty, 0);
+            const isLow = stock < 10;
+
+            // Update low-stock card styling
+            card.classList.toggle('low-stock', isLow);
+
+            // Update total stock number
+            const stockDisplay = card.querySelector('.total-stock-display');
+            if (stockDisplay) stockDisplay.innerHTML = `Total: <strong>${stock}</strong>`;
+
+            // Update LOW badge inside product name (add/remove only)
+            const nameEl = card.querySelector('.product-name');
+            if (nameEl) {
+                const existingBadge = nameEl.querySelector('.low-stock-badge');
+                if (isLow && !existingBadge) {
+                    nameEl.insertAdjacentHTML('beforeend', '<span class="low-stock-badge">LOW</span>');
+                } else if (!isLow && existingBadge) {
+                    existingBadge.remove();
+                }
+            }
+
+            // Rebuild only the batch pills row (no img involved)
+            const existingBatchList = card.querySelector('.card-batches-list');
+            const validBatches = computedBatches.filter(b => b.computedQty !== 0 || b.expiry);
+            if (validBatches.length > 0) {
+                const batchItems = validBatches.map(b => {
+                    const dateStr = b.expiry && b.expiry !== 'No Expiry'
+                        ? new Date(b.expiry).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                        : 'No Date';
+                    const isNeg = b.computedQty < 0;
+                    return `<div class="batch-pill ${isNeg ? 'neg-stock' : ''}"><span class="batch-date">${dateStr}</span><span class="batch-qty" style="${isNeg ? 'color:var(--danger);font-weight:700;' : ''}">${b.computedQty}</span></div>`;
+                }).join('');
+
+                if (existingBatchList) {
+                    existingBatchList.innerHTML = batchItems;
+                } else {
+                    const newList = document.createElement('div');
+                    newList.className = 'card-batches-list';
+                    newList.dataset.product = productName;
+                    newList.innerHTML = batchItems;
+                    card.appendChild(newList);
+                }
+            } else if (existingBatchList) {
+                existingBatchList.remove();
+            }
         },
 
         saveInventory() {
@@ -205,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     card.innerHTML = `
                         <div class="product-info" data-product="${productName}">
-                            ${product.image ? `<img src="${product.image}" class="product-img" onerror="this.src='images/Logo.webp'">` : `<div class="product-img" style="display:flex;align-items:center;justify-content:center;font-size:1.5rem;">📦</div>`}
+                            ${product.image ? `<img src="${product.image}" class="product-img" onerror="this.onerror=null; this.outerHTML='<div class=\'product-img\' style=\'display:flex;align-items:center;justify-content:center;font-size:1.5rem;\'>📦</div>';">` : `<div class="product-img" style="display:flex;align-items:center;justify-content:center;font-size:1.5rem;">📦</div>`}
                             <div class="product-details">
                                 <div class="product-name">
                                     ${this.formatProductName(productName)}
@@ -279,8 +338,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 try {
                     await window.AppDB.insertAdjustment(this.currentModalProduct, parseInt(q), d, "Manual New Batch");
-                    await this.loadInventory();
+                    await this.loadInventory(true); // refresh data only, no full grid re-render
                     this.renderModalBatches();
+                    this.updateCardStockDisplay(this.currentModalProduct);
                 } catch (e) {
                     alert("Failed to add batch: " + e.message);
                 }
@@ -300,8 +360,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         target.disabled = true;
                         try {
                             await AppDB.insertAdjustment(this.currentModalProduct, -qtyToClear, expiry, "Manual Batch Clear");
-                            await this.loadInventory();
+                            await this.loadInventory(true); // refresh data only
                             this.renderModalBatches();
+                            this.updateCardStockDisplay(this.currentModalProduct);
                         } catch (err) {
                             alert("Failed to clear batch: " + err.message);
                             target.disabled = false;
@@ -323,8 +384,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 await AppDB.insertAdjustment(this.currentModalProduct, -1, expiry, "Manual -1 Edit");
                             }
                         }
-                        await this.loadInventory();
+                        await this.loadInventory(true); // refresh data only, no full grid re-render
                         this.renderModalBatches();
+                        this.updateCardStockDisplay(this.currentModalProduct);
                     } catch (err) {
                         alert("Failed to adjust stock: " + err.message);
                         this.renderModalBatches(); // reset 
@@ -350,16 +412,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         target.disabled = true;
                         try {
-                            // Reverse the old stack and create new stack
-                            // We need to carefully handle oldExp if it was empty string
                             const resolvedOldExp = (oldExp === "No Expiry" || !oldExp) ? "" : oldExp;
                             const resolvedNewExp = (newExp === "No Expiry" || !newExp) ? "" : newExp;
 
                             await AppDB.insertAdjustment(this.currentModalProduct, -qty, resolvedOldExp, "Date Move - Remove old");
                             await AppDB.insertAdjustment(this.currentModalProduct, qty, resolvedNewExp, "Date Move - Add new");
 
-                            await this.loadInventory();
+                            await this.loadInventory(true); // refresh data only
                             this.renderModalBatches();
+                            this.updateCardStockDisplay(this.currentModalProduct);
                         } catch (err) {
                             alert("Failed to change date: " + err.message);
                             target.value = oldExp; // revert UI
