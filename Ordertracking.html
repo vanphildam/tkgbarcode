@@ -4,216 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TKG Barcode Ops - Reports & Statistics</title>
+    <title>TKG Barcode Ops - Redirecting</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            background: var(--bg-app);
-            min-height: 100vh;
-        }
-
-        .reports-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .reports-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .reports-header h1 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 0;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .stat-title {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: var(--text-primary);
-        }
-
-        .chart-container {
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            height: 400px;
-        }
-
-        .inventory-table-container {
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.95rem;
-        }
-
-        th,
-        td {
-            padding: 1.25rem 1.5rem;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        th {
-            background: rgba(0, 0, 0, 0.2);
-            font-weight: 600;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        tbody tr:hover {
-            background: rgba(255, 255, 255, 0.02);
-            cursor: default;
-        }
-
-        @media (max-width: 900px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <meta http-equiv="refresh" content="0; url=order-records.html">
 </head>
 
 <body>
     <div id="app">
         <header>
             <div style="display: flex; align-items: center; gap: 1rem;">
-                <a href="index.html" class="secondary-btn" style="text-decoration: none; font-size: 0.9rem;">← Home</a>
+                <a href="index.html" class="secondary-btn" style="text-decoration: none; font-size: 0.9rem;">Home</a>
                 <div class="logo">TKGBarcodeOps</div>
-            </div>
-            <div>
-                <span style="color: var(--text-secondary);">Live Analytics & Dynamic Inventory Engine</span>
             </div>
         </header>
 
-        <main class="reports-container">
-            <div class="reports-header">
-                <h1>Reports & Statistics</h1>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card" style="border-top: 3px solid #3b82f6;">
-                    <span class="stat-title">Total Outbound (Items)</span>
-                    <span class="stat-value" id="total-outbound-stat">0</span>
-                </div>
-                <div class="stat-card" style="border-top: 3px solid var(--danger);">
-                    <span class="stat-title">Total Logged Defects</span>
-                    <span class="stat-value" id="total-defects-stat">0</span>
-                </div>
-                <div class="stat-card" style="border-top: 3px solid #a855f7;">
-                    <span class="stat-title">Best Selling Product</span>
-                    <span class="stat-value" id="best-seller-stat"
-                        style="font-size: 1.5rem; margin-top: auto;">N/A</span>
-                </div>
-            </div>
-
-            <div class="chart-container" style="height: auto;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <h2 style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin: 0;">Sales
-                        Performance Details</h2>
-                    <div style="display: flex; gap: 1rem;">
-                        <select id="chart-product-filter" class="filter-input" style="max-width: 200px;">
-                            <option value="" disabled selected>Select a Product...</option>
-                            <option value="all">All Products (Combined)</option>
-                        </select>
-                        <select id="chart-timeframe-filter" class="filter-input" style="max-width: 150px;">
-                            <option value="daily">Daily</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly">Monthly</option>
-                            <option value="yearly">Yearly</option>
-                        </select>
-                    </div>
-                </div>
-                <div style="position: relative; height: 350px; width: 100%;">
-                    <div id="chart-placeholder-overlay"
-                        style="position: absolute; top:0; left:0; right:0; bottom:0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); z-index: 10; border-radius: 8px; backdrop-filter: blur(4px);">
-                        <span style="font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.6;">📊</span>
-                        <h3 style="margin:0; font-weight: 600; font-size: 1.1rem; color: #fff;">No Product Selected</h3>
-                        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: var(--text-secondary);">Select a
-                            product from the list above or click a product link in the table below to generate its
-                            analytics graph.</p>
-                    </div>
-                    <canvas id="salesChart" style="opacity: 0; transition: opacity 0.3s ease;"></canvas>
-                </div>
-            </div>
-
-            <div class="inventory-table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Product Name</th>
-                            <th style="text-align: center;">Inbound (Logged)</th>
-                            <th style="text-align: center;">Outbound (Fulfilled)</th>
-                            <th style="text-align: center;">Defects</th>
-                            <th style="text-align: center; color: white;">Dynamic Computed Stock</th>
-                        </tr>
-                    </thead>
-                    <tbody id="report-tbody">
-                        <tr>
-                            <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 2rem;">
-                                Loading dynamic reports...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <main style="padding: 2rem;">
+            <h1 style="margin-bottom: 0.75rem;">Reports & Statistics has moved</h1>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">You are being redirected to Orders &
+                Analytics.</p>
+            <a href="order-records.html" class="primary-btn" style="text-decoration: none;">Go to Orders & Analytics</a>
         </main>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="products.js"></script>
-    <script src="supabase-db.js"></script>
-    <script src="reports.js"></script>
+    <script>
+        window.location.replace('order-records.html');
+    </script>
 </body>
 
 </html>

@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TKG Barcode Ops - Issue Management</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: var(--bg-app);
+            min-height: 100vh;
+        }
+
+        .issues-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .issues-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .issues-header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+        .issues-subtitle {
+            margin-top: 0.4rem;
+            color: var(--text-secondary);
+        }
+
+        .page-tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            font-weight: 600;
+            padding: 0.7rem 1.4rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: -1px;
+        }
+
+        .tab-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .tab-section {
+            display: none;
+        }
+
+        .tab-section.active {
+            display: block;
+        }
+
+        .refunds-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Stats Row */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .stat-title {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        /* Filters */
+        .filters-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: center;
+        }
+
+        .filter-input {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .filter-input:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        select.filter-input {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+            background-color: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            padding-right: 2.5rem;
+        }
+
+        select.filter-input option {
+            background: #0f172a;
+            color: var(--text-primary);
+        }
+
+        /* Table */
+        .table-container {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        th,
+        td {
+            padding: 1.25rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.2);
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        .badge.pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+        }
+
+        .badge.approved {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+        }
+
+        .badge.rejected {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+
+        .badge.restocked {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+
+        .badge.resolved {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+        }
+
+        .badge.shopee {
+            background: rgba(249, 115, 22, 0.15);
+            color: #f97316;
+        }
+
+        .badge.lazada {
+            background: rgba(14, 165, 233, 0.15);
+            color: #38bdf8;
+        }
+
+        .badge.shopify {
+            background: rgba(147, 51, 234, 0.15);
+            color: #c084fc;
+        }
+
+        .badge.tiktok {
+            background: rgba(236, 72, 153, 0.15);
+            color: #f472b6;
+        }
+
+        .badge.b2b {
+            background: rgba(168, 85, 247, 0.15);
+            color: #a855f7;
+        }
+
+        .badge.other {
+            background: rgba(156, 163, 175, 0.15);
+            color: #9ca3af;
+        }
+
+        /* Action buttons */
+        .action-btn {
+            padding: 0.35rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            background: transparent;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-approve {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-approve:hover {
+            background: rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-restock {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-restock:hover {
+            background: rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-reject {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-reject:hover {
+            background: rgba(245, 158, 11, 0.25);
+        }
+
+        .btn-delete {
+            background: rgba(239, 68, 68, 0.10);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-delete:hover {
+            background: rgba(239, 68, 68, 0.20);
+        }
+
+        .btn-neutral {
+            background: rgba(148, 163, 184, 0.12);
+            color: #cbd5e1;
+            border-color: rgba(148, 163, 184, 0.3);
+        }
+
+        .btn-neutral:hover {
+            background: rgba(148, 163, 184, 0.2);
+        }
+
+        /* Log Refund CTA button */
+        .btn-log-refund {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-log-refund:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 1rem;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        .modal-box {
+            background: var(--bg-app);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            animation: scaleIn 0.2s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.75rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: white;
+        }
+
+        .modal-body {
+            padding: 1.75rem 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .modal-footer {
+            padding: 1.25rem 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Form fields inside modal */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .form-group select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+            padding-right: 2.5rem;
+            cursor: pointer;
+        }
+
+        .form-group select option {
+            background: #0f172a;
+            color: white;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group input:hover,
+        .form-group select:hover,
+        .form-group textarea:hover {
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+
+        /* Restock checkbox row */
+        .restock-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            background: rgba(59, 130, 246, 0.07);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .restock-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .restock-toggle span {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .btn-submit-modal {
+            background: linear-gradient(135deg, var(--accent) 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            padding: 0.9rem 2rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .btn-submit-modal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .notes-cell {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Defects */
+        .defect-container {
+            max-width: 100%;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .defect-btn {
+            background: var(--bg-surface);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 150px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .defect-btn:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .defect-btn.active {
+            border-color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+        }
+
+        .defect-btn .icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .defect-btn .label {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .scan-area {
+            background: var(--bg-surface);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .scan-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 1rem;
+            font-size: 1.1rem;
+            text-align: center;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-app);
+            color: var(--text-primary);
+        }
+
+        .scan-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .scan-status {
+            min-height: 1.5rem;
+            font-weight: 600;
+        }
+
+        .summary-card {
+            background: var(--bg-surface);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+        }
+
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .log-table th,
+        .log-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .log-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .defect-tag {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .defect-no-air {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .defect-leak {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+
+        .defect-mushy {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .defect-other {
+            background: rgba(167, 139, 250, 0.2);
+            color: #a78bfa;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .category-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a href="index.html" class="secondary-btn" style="text-decoration: none; font-size: 0.9rem;">← Home</a>
+                <div class="logo">TKGBarcodeOps</div>
+            </div>
+            <div>
+                <span style="color: var(--text-secondary);">Unified refunds and defect tracking</span>
+            </div>
+        </header>
+
+        <main class="issues-container">
+            <div class="issues-header">
+                <div>
+                    <h1>Issue Management</h1>
+                    <div class="issues-subtitle">Refunds and quality issues in one workflow</div>
+                </div>
+                <div class="page-tabs">
+                    <button class="tab-btn active" data-issue-tab="refunds">Refunds</button>
+                    <button class="tab-btn" data-issue-tab="defects">Defects</button>
+                </div>
+            </div>
+
+            <section id="refunds-section" class="tab-section active">
+                <div class="refunds-header">
+                    <div></div>
+                    <button class="btn-log-refund" id="btn-open-log-modal">+ Log New Refund</button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card" style="border-top: 3px solid #fbbf24;">
+                        <span class="stat-title">Pending</span>
+                        <span class="stat-value" id="stat-pending">0</span>
+                    </div>
+                    <div class="stat-card" style="border-top: 3px solid #34d399;">
+                        <span class="stat-title">Approved</span>
+                        <span class="stat-value" id="stat-approved">0</span>
+                    </div>
+                    <div class="stat-card" style="border-top: 3px solid #60a5fa;">
+                        <span class="stat-title">Restocked</span>
+                        <span class="stat-value" id="stat-restocked">0</span>
+                    </div>
+                    <div class="stat-card" style="border-top: 3px solid #f87171;">
+                        <span class="stat-title">Rejected</span>
+                        <span class="stat-value" id="stat-rejected">0</span>
+                    </div>
+                </div>
+
+                <div class="filters-bar">
+                    <input type="text" id="refund-search-input" class="filter-input"
+                        placeholder="Search by AWB, Order ID, customer..."
+                        style="flex: 1; min-width: 200px; max-width: 360px;">
+                    <select id="refund-status-filter" class="filter-input" style="min-width: 160px;">
+                        <option value="all">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Restocked">Restocked</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                    <select id="refund-platform-filter" class="filter-input" style="min-width: 150px;">
+                        <option value="all">All Platforms</option>
+                        <option value="Shopee">Shopee</option>
+                        <option value="Lazada">Lazada</option>
+                        <option value="Shopify">Shopify</option>
+                        <option value="TikTok">TikTok</option>
+                        <option value="B2B">B2B / Wholesale</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <select id="refund-reason-filter" class="filter-input" style="min-width: 180px;">
+                        <option value="all">All Reasons</option>
+                        <option value="Wrong Item Sent">Wrong Item Sent</option>
+                        <option value="Damaged / Defective">Damaged / Defective</option>
+                        <option value="Missing Items">Missing Items</option>
+                        <option value="Customer Changed Mind">Customer Changed Mind</option>
+                        <option value="Expired Product">Expired Product</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>AWB / Order ID</th>
+                                <th>Platform</th>
+                                <th>Reason</th>
+                                <th>Items Affected</th>
+                                <th>Notes</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="refunds-tbody">
+                            <tr>
+                                <td colspan="8"
+                                    style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                                    Loading refund records...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="defects-section" class="tab-section">
+                <div class="defect-container">
+                    <div class="category-grid">
+                        <button class="defect-btn" type="button" data-defect-type="no-air">
+                            <div class="icon">💨</div>
+                            <div class="label">No Air</div>
+                        </button>
+                        <button class="defect-btn" type="button" data-defect-type="leak">
+                            <div class="icon">💧</div>
+                            <div class="label">Leak</div>
+                        </button>
+                        <button class="defect-btn" type="button" data-defect-type="mushy">
+                            <div class="icon">🌫️</div>
+                            <div class="label">Mushy</div>
+                        </button>
+                        <button class="defect-btn" type="button" data-defect-type="other">
+                            <div class="icon">❓</div>
+                            <div class="label">Other</div>
+                        </button>
+                    </div>
+
+                    <div id="other-input-container"
+                        style="display: none; margin-bottom: 2rem; animation: slideDown 0.3s ease-out;">
+                        <label
+                            style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-secondary);">Specify
+                            Issue</label>
+                        <input type="text" id="other-defect-desc" class="form-control"
+                            placeholder="e.g. Torn packaging, Wrong weight..."
+                            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 2px solid var(--border-color); background: var(--bg-surface); color: var(--text-primary);">
+                    </div>
+
+                    <div class="scan-area">
+                        <h3 style="margin-bottom: 1rem; color: var(--text-secondary);">Scan Item Barcode</h3>
+                        <div
+                            style="display: flex; gap: 1rem; max-width: 800px; margin: 0 auto; margin-bottom: 1rem; flex-wrap: wrap;">
+                            <input type="text" id="defect-batch-input" class="scan-input"
+                                style="flex: 1; margin-bottom: 0;" placeholder="Batch # (Opt)">
+                            <input type="date" id="defect-expiry-input" class="scan-input"
+                                style="flex: 1; margin-bottom: 0;" title="Optional Expiry Date">
+                            <input type="text" id="defect-scan-input" class="scan-input"
+                                style="flex: 2; margin-bottom: 0;" placeholder="Click category then scan..." disabled>
+                        </div>
+                        <div id="scan-feedback" class="scan-status">Select a defect category to start scanning</div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                            <h2>Session Summary</h2>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button id="defect-sync-btn" class="secondary-btn"
+                                    style="background: var(--accent); color: white; border: none; font-weight: bold;">Sync
+                                    to Cloud Ledger</button>
+                                <button id="defect-clear-btn" class="secondary-btn">Clear All Logs</button>
+                            </div>
+                        </div>
+
+                        <div class="stats-grid" style="margin-top: 1.5rem; margin-bottom: 2rem;">
+                            <div class="stat-card">
+                                <div class="stat-title">No Air</div>
+                                <div class="stat-value" id="count-no-air">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-title">Leak</div>
+                                <div class="stat-value" id="count-leak">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-title">Mushy</div>
+                                <div class="stat-value" id="count-mushy">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-title">Other</div>
+                                <div class="stat-value" id="count-other">0</div>
+                            </div>
+                        </div>
+
+                        <div class="filters-bar" style="margin-bottom: 1rem;">
+                            <input type="text" id="defect-search-input" class="filter-input"
+                                placeholder="Search by product or barcode"
+                                style="flex: 1; min-width: 200px; max-width: 360px;">
+                            <select id="defect-status-filter" class="filter-input" style="min-width: 160px;">
+                                <option value="all">All Statuses</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Resolved">Resolved</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-bar">
+                            <button class="filter-btn active" type="button" data-defect-filter="all">All</button>
+                            <button class="filter-btn" type="button" data-defect-filter="no-air">No Air</button>
+                            <button class="filter-btn" type="button" data-defect-filter="leak">Leak</button>
+                            <button class="filter-btn" type="button" data-defect-filter="mushy">Mushy</button>
+                            <button class="filter-btn" type="button" data-defect-filter="other">Other</button>
+                        </div>
+
+                        <h3 style="margin-bottom:1rem;">Recent Logs</h3>
+
+                        <div class="table-wrapper">
+                            <table class="log-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Defect Type</th>
+                                        <th>Batch / Expiry</th>
+                                        <th>Barcode</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="defect-log-body">
+                                    <tr>
+                                        <td colspan="6"
+                                            style="text-align:center; padding: 2rem; color: var(--text-secondary);">
+                                            Loading defect logs...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="log-refund-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>🔄 Log New Refund</h2>
+                <button class="modal-close" id="close-log-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="refund-date">
+                    </div>
+                    <div class="form-group">
+                        <label>Platform</label>
+                        <select id="refund-platform">
+                            <option value="" disabled selected>Select platform...</option>
+                            <option value="Shopee">Shopee</option>
+                            <option value="Lazada">Lazada</option>
+                            <option value="Shopify">Shopify</option>
+                            <option value="TikTok">TikTok</option>
+                            <option value="B2B">B2B / Wholesale</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>AWB / Tracking Number</label>
+                        <input type="text" id="refund-awb" placeholder="e.g. SPXSG123456789">
+                    </div>
+                    <div class="form-group">
+                        <label>Order ID</label>
+                        <input type="text" id="refund-order-id" placeholder="e.g. 2409123456789">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Customer Name / Contact (Optional)</label>
+                    <input type="text" id="refund-customer" placeholder="e.g. John Doe / 9123 4567">
+                </div>
+
+                <div class="form-group">
+                    <label>Reason for Refund</label>
+                    <select id="refund-reason">
+                        <option value="" disabled selected>Select reason...</option>
+                        <option value="Wrong Item Sent">Wrong Item Sent</option>
+                        <option value="Damaged / Defective">Damaged / Defective</option>
+                        <option value="Missing Items">Missing Items</option>
+                        <option value="Customer Changed Mind">Customer Changed Mind</option>
+                        <option value="Expired Product">Expired Product</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Items Affected</label>
+                    <input type="text" id="refund-items" placeholder="e.g. 2x Popcorn Original, 1x Salted Egg">
+                </div>
+
+                <div class="form-group">
+                    <label>Notes / Additional Details</label>
+                    <textarea id="refund-notes"
+                        placeholder="Any extra context, photos reference, resolution agreed, etc."></textarea>
+                </div>
+
+                <label class="restock-toggle">
+                    <input type="checkbox" id="refund-restock">
+                    <span>📦 Restock returned items back into inventory</span>
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-submit-modal" id="btn-submit-refund">Save Refund Record</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="products.js"></script>
+    <script src="supabase-db.js"></script>
+    <script src="refunds.js"></script>
+    <script src="notifications.js"></script>
+</body>
+
+</html>

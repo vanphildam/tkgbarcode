@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TKG Barcode Ops - Order Records</title>
+    <title>TKG Barcode Ops - Orders & Analytics</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,13 +15,52 @@
             min-height: 100vh;
         }
 
+        .page-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .page-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+        .page-subtitle {
+            margin-top: 0.4rem;
+            color: var(--text-secondary);
+        }
+
+        .page-tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
         .tab-btn {
             background: transparent;
             border: none;
             color: var(--text-secondary);
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 600;
-            padding: 0.8rem 1.5rem;
+            padding: 0.7rem 1.4rem;
             cursor: pointer;
             border-bottom: 2px solid transparent;
             transition: all 0.2s;
@@ -39,30 +78,43 @@
             border-bottom: 2px solid var(--accent);
         }
 
-        .records-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .records-header {
+        .sub-tabs {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .records-header h1 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 0;
+        .sub-tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.98rem;
+            font-weight: 600;
+            padding: 0.65rem 1.1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: -1px;
+        }
+
+        .sub-tab-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .sub-tab-btn.active {
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .tab-section {
+            display: none;
+        }
+
+        .tab-section.active {
+            display: block;
         }
 
         .filters-bar {
@@ -81,7 +133,7 @@
             font-size: 0.95rem;
             flex: 1;
             min-width: 200px;
-            max-width: 300px;
+            max-width: 320px;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -116,7 +168,8 @@
             background: rgba(0, 0, 0, 0.4);
         }
 
-        .table-container {
+        .table-container,
+        .inventory-table-container {
             background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 16px;
@@ -156,6 +209,7 @@
             font-size: 0.75rem;
             font-weight: 600;
             display: inline-block;
+            white-space: nowrap;
         }
 
         .badge.complete {
@@ -203,6 +257,8 @@
             margin-top: 0.5rem;
             color: var(--text-secondary);
             display: none;
+            list-style-type: none;
+            padding-left: 0;
         }
 
         .items-list-expanded li {
@@ -219,6 +275,109 @@
             padding: 0;
             margin-left: 0.5rem;
         }
+
+        .action-btn {
+            padding: 0.35rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            background: transparent;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-edit {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-edit:hover {
+            background: rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-cancel {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-cancel:hover {
+            background: rgba(245, 158, 11, 0.25);
+        }
+
+        .btn-delete {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-delete:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-pod {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 0.2rem 0.4rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .stat-title {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .chart-container {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            height: auto;
+        }
+
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 
@@ -230,69 +389,150 @@
                 <div class="logo">TKGBarcodeOps</div>
             </div>
             <div>
-                <span style="color: var(--text-secondary);">Historical Order Logs</span>
+                <span style="color: var(--text-secondary);">Orders, history, and live analytics</span>
             </div>
         </header>
 
-        <main class="records-container">
-            <div class="records-header" style="flex-direction:column; align-items:flex-start; margin-bottom: 1.5rem;">
-                <h1>Order Records</h1>
-
-                <div
-                    style="display:flex; gap:0.5rem; margin-top:1.5rem; border-bottom:1px solid rgba(255,255,255,0.1); width:100%;">
-                    <button class="tab-btn active" id="tab-ecommerce">E-Commerce</button>
-                    <button class="tab-btn" id="tab-b2b">Wholesale / B2B</button>
+        <main class="page-container">
+            <div class="page-header">
+                <div>
+                    <h1>Orders & Analytics</h1>
+                    <div class="page-subtitle">Unified order records with live reporting</div>
+                </div>
+                <div class="page-tabs">
+                    <button class="tab-btn active" data-section="orders">Orders</button>
+                    <button class="tab-btn" data-section="analytics">Analytics</button>
                 </div>
             </div>
 
-            <div class="filters-bar">
-                <input type="text" id="search-input" class="filter-input"
-                    placeholder="Search by AWB, Order ID, tracking...">
-                <select id="status-filter" class="filter-input" style="max-width: 200px;">
-                    <option value="all">All Statuses</option>
-                    <option value="complete">Complete / Exported</option>
-                    <option value="pending">Pending</option>
-                </select>
-                <select id="platform-filter" class="filter-input" style="max-width: 150px;">
-                    <option value="all">All Platforms</option>
-                    <option value="shopee">Shopee</option>
-                    <option value="lazada">Lazada</option>
-                    <option value="shopify">Shopify</option>
-                    <option value="tiktok">TikTok</option>
-                    <option value="b2b">B2B / Wholesale</option>
-                </select>
-                <select id="delivery-filter" class="filter-input" style="max-width: 150px;">
-                    <option value="all">All Delivery</option>
-                    <option value="spx">SPX Express</option>
-                    <option value="ninjavan">NinjaVan</option>
-                    <option value="singpost">Singpost</option>
-                    <option value="jt">J&T</option>
-                    <option value="b2b">Direct Dispatch</option>
-                </select>
-            </div>
+            <section id="orders-section" class="tab-section active">
+                <div class="sub-tabs">
+                    <button class="sub-tab-btn active" data-order-tab="ecommerce">E-Commerce</button>
+                    <button class="sub-tab-btn" data-order-tab="b2b">Wholesale / B2B</button>
+                </div>
 
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date / Time</th>
-                            <th>AWB / Tracking</th>
-                            <th>Order ID</th>
-                            <th>Platform</th>
-                            <th>Delivery</th>
-                            <th>Items</th>
-                            <th>Status</th>
-                            <th style="text-align: right;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="records-tbody">
-                        <tr>
-                            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                                Loading records...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                <div class="filters-bar">
+                    <input type="text" id="search-input" class="filter-input"
+                        placeholder="Search by AWB, Order ID, tracking...">
+                    <select id="status-filter" class="filter-input" style="max-width: 200px;">
+                        <option value="all">All Statuses</option>
+                        <option value="complete">Complete / Exported</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                    <select id="platform-filter" class="filter-input" style="max-width: 160px;">
+                        <option value="all">All Platforms</option>
+                        <option value="shopee">Shopee</option>
+                        <option value="lazada">Lazada</option>
+                        <option value="shopify">Shopify</option>
+                        <option value="tiktok">TikTok</option>
+                        <option value="b2b">B2B / Wholesale</option>
+                    </select>
+                    <select id="delivery-filter" class="filter-input" style="max-width: 160px;">
+                        <option value="all">All Delivery</option>
+                        <option value="spx">SPX Express</option>
+                        <option value="ninjavan">NinjaVan</option>
+                        <option value="singpost">Singpost</option>
+                        <option value="jt">J&amp;T</option>
+                        <option value="b2b">Direct Dispatch</option>
+                    </select>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date / Time</th>
+                                <th>AWB / Tracking</th>
+                                <th>Order ID</th>
+                                <th>Platform</th>
+                                <th>Delivery</th>
+                                <th>Items</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="records-tbody">
+                            <tr>
+                                <td colspan="8"
+                                    style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                                    Loading records...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="analytics-section" class="tab-section">
+                <div class="stats-grid">
+                    <div class="stat-card" style="border-top: 3px solid #3b82f6;">
+                        <span class="stat-title">Total Outbound (Items)</span>
+                        <span class="stat-value" id="total-outbound-stat">0</span>
+                    </div>
+                    <div class="stat-card" style="border-top: 3px solid var(--danger);">
+                        <span class="stat-title">Total Logged Defects</span>
+                        <span class="stat-value" id="total-defects-stat">0</span>
+                    </div>
+                    <div class="stat-card" style="border-top: 3px solid #a855f7;">
+                        <span class="stat-title">Best Selling Product</span>
+                        <span class="stat-value" id="best-seller-stat"
+                            style="font-size: 1.5rem; margin-top: auto;">N/A</span>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                        <h2 style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin: 0;">Sales
+                            Performance Details</h2>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <select id="chart-product-filter" class="filter-input" style="max-width: 220px;">
+                                <option value="" disabled selected>Select a Product...</option>
+                                <option value="all">All Products (Combined)</option>
+                            </select>
+                            <select id="chart-timeframe-filter" class="filter-input" style="max-width: 160px;">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 350px; width: 100%;">
+                        <div id="chart-placeholder-overlay"
+                            style="position: absolute; top:0; left:0; right:0; bottom:0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); z-index: 10; border-radius: 8px; backdrop-filter: blur(4px);">
+                            <span
+                                style="font-size: 1.2rem; margin-bottom: 0.5rem; opacity: 0.7; letter-spacing: 0.08em; text-transform: uppercase;">Chart</span>
+                            <h3 style="margin:0; font-weight: 600; font-size: 1.1rem; color: #fff;">No Product Selected
+                            </h3>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: var(--text-secondary);">Select a
+                                product from the list above or click a product link in the table below to generate its
+                                analytics graph.</p>
+                        </div>
+                        <canvas id="salesChart" style="opacity: 0; transition: opacity 0.3s ease;"></canvas>
+                    </div>
+                </div>
+
+                <div class="inventory-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th style="text-align: center;">Inbound (Logged)</th>
+                                <th style="text-align: center;">Outbound (Fulfilled)</th>
+                                <th style="text-align: center;">Defects</th>
+                                <th style="text-align: center; color: white;">Dynamic Computed Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody id="report-tbody">
+                            <tr>
+                                <td colspan="5"
+                                    style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                    Loading dynamic reports...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </main>
     </div>
 
