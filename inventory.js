@@ -513,5 +513,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     };
 
-    app.init();
-});
+        window._inventoryApp = app;
+        app.init();
+    });

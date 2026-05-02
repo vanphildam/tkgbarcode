@@ -303,21 +303,13 @@ body {
     align-items: center;
     gap: 6px;
     padding: 8px 16px;
-    width: 50%;
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: auto;
+    background: #2d3f55;
+    border: none;
     border-radius: 8px;
-    color: var(--text-secondary);
+    color: #ffffff;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: all 0.25s ease;
-}
-
-.home-btn:hover {
-    background: rgba(55, 138, 221, 0.1) !important;
-    border-color: #378ADD !important;
-    color: #378ADD !important;
-    transform: translateX(-2px);
 }
 
 .home-btn:active {
